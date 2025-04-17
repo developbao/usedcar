@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的发布 - 二手车交易平台</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 页面基础样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        /* 顶部导航 */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .header-top a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* 返回首页按钮 */
+        .back-home-btn {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .back-home-btn:hover {
+            background-color: #218838;
+        }
+
+        /* 页面导航栏 */
+        .navbar {
+            display: flex;
+            justify-content: center;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            padding: 15px 25px;
+            color: #333;
+            font-size: 18px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* 我的发布内容 */
+        .posted-cars {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        /* 车辆卡片样式 */
+        .car-card {
+            position: relative;
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            cursor: pointer;  /* 鼠标悬停时显示为点击样式 */
+        }
+
+        /* 使得整个卡片区域成为链接 */
+        .car-link {
+            display: block;
+            text-decoration: none;  /* 去除链接的默认下划线 */
+            color: inherit;  /* 继承文本颜色 */
+        }
+
+        /* 取消发布按钮 */
+        .remove-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .remove-button button {
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .remove-button button:hover {
+            background-color: #ff3333;
+        }
+
+        /* 车辆图片和内容的样式 */
+        .car-info {
+            margin-top: 15px;
+        }
+
+        .car-photo {
+            margin-top: 15px;
+            max-width: 300px;
+            height: auto;
+        }
+
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .my-released-cars {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="header-top">
+            <ul class="header-left">
+                <li>欢迎来到二手车交易平台！</li>
+            </ul>
+            <a href="/" class="back-home-btn">返回首页</a>
+        </div>
+    </header>
+
+    <!-- 页面导航栏 -->
+    <div class="navbar">
+        <a href="/users/my_collection">我的收藏</a>
+        <a href="/users/my_released_cars">我的发布</a>
+        <a href="/users/pending_cars">待审核车辆</a>
+        <a href="/users/my_orders">我的订单</a>
+    </div>
+
+    <div class="posted-cars">
+    <h2>我的订单</h2>
+
+<!-- 如果用户有订单 -->
+{% if orders %}
+    <ul>
+        {% for order in orders %}
+            <li class="car-item">
+                <div class="car-card">
+                        <div class="car-info">
+                            <h3>{{ order.Brand }} - {{ order.Year|date:"Y" }}</h3>
+                            <p><strong>颜色:</strong> {{ order.Color }}</p>
+                            <p><strong>里程:</strong> {{ order.Mileage }} km</p>
+                            <p><strong>价格:</strong> ¥{{ order.Price }}</p>
+                            <p><strong>购买人:</strong> {{ order.buyer_name }}</p>
+                            <p><strong>电话号码:</strong> {{ order.phone_number }}</p>
+                            <p><strong>地址:</strong> {{ order.delivery_address }}</p>
+                            <p><strong>支付方式:</strong> {{ order.payment_method }}</p>
+                        </div>
+
+                        <!-- 订单图片展示 -->
+                        {% if order.PhotoUrl %}
+                            <div class="car-photo">
+                                <img src="{{ order.PhotoUrl }}" alt="{{ order.Brand }} Photo" style="max-width: 300px;">
+                            </div>
+                        {% endif %}
+                    </a>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+<!-- 如果用户没有订单 -->
+{% else %}
+    <p>您没有订单。</p>
+{% endif %}
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ car.Brand }} {{ car.Model }} - 详细信息</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'users/css/styles.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .car-image {
+            display: block;
+            margin: 0 auto 20px;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        .car-details {
+            margin-bottom: 20px;
+        }
+        .car-details p {
+            font-size: 16px;
+            color: #555;
+            margin: 5px 0;
+        }
+        .car-details p strong {
+            color: #333;
+        }
+        .actions {
+            text-align: center;
+        }
+        .actions button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .actions button:hover {
+            background-color: #0056b3;
+        }
+        .actions button.cancel {
+            background-color: #dc3545;
+        }
+        .actions button.cancel:hover {
+            background-color: #c82333;
+        }
+        .login-prompt {
+            text-align: center;
+            font-size: 16px;
+            color: #555;
+        }
+        .login-prompt a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .login-prompt a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{{ car.Brand }} {{ car.Model }}</h2>
+        <img src="{{ car.PhotoUrl }}" alt="{{ car.Brand }} {{ car.Model }}" class="car-image">
+        <div class="car-details">
+            <p><strong>品牌:</strong> {{ car.Brand }}</p>
+            <p><strong>年份:</strong> {{ car.Year }}</p>
+            <p><strong>价格:</strong> {{ car.Price }} 万</p>
+            <p><strong>颜色:</strong> {{ car.Color }}</p>
+            <p><strong>里程:</strong> {{ car.Mileage }} 公里</p>
+            <p><strong>配置:</strong> {{ car.Configuration }}</p>
+            <p><strong>描述:</strong> {{ car.ConditionDescription }}</p>
+        </div>
+
+
+            <div class="actions">
+                <button onclick="location.href='{% url 'approve_car' car.id %}'" class="btn">通过</button>
+                <button onclick="location.href='{% url 'reject_car' car.id %}'" class="btn">不通过</button>
+            </div>
+    </div>
+</body>
+</html>

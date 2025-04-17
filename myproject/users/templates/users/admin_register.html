@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员注册</title>
+    <style>
+   /* 页面基础样式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('/static/images/1.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 100%; /* 改为100%，确保页面可以扩展 */
+    min-height: 100vh; /* 最小高度为视口高度 */
+    display: flex;
+    flex-direction: column; /* 使body的内容垂直排列 */
+}
+
+/* 顶部导航 */
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px 0;
+}
+
+.header-top {
+    display: flex;
+    justify-content: flex-start; /* 保持按钮在标题后面 */
+    align-items: center;
+    padding: 0 20px;
+}
+
+.header-top .logo {
+    font-size: 24px;
+    margin-right: 20px; /* 给标题和按钮之间留点空隙 */
+}
+
+.header-top a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+/* 管理员注册容器 */
+.register-container {
+    width: 350px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    position: fixed; /* 固定容器位置 */
+    top: 50%; /* 使容器垂直居中 */
+    right: 50px; /* 距离页面右侧50px */
+    transform: translateY(-50%); /* 垂直居中 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 70%; /* 设置容器最大高度 */
+    overflow-y: auto; /* 允许纵向滚动 */
+}
+
+/* 标题 */
+.register-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* 注册表单 */
+.register-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* 使表单宽度充满容器 */
+}
+
+.register-form input {
+    margin-bottom: 15px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    width: 100%; /* 确保输入框宽度与容器一致 */
+}
+
+.btn-register {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    width: 100%; /* 使按钮宽度与输入框一致 */
+}
+
+.btn-register:hover {
+    background-color: #218838;
+}
+
+.admin-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.admin-login a {
+    color: #ddd;
+    text-decoration: none;
+}
+
+.admin-login a:hover {
+    color: white;
+}
+
+/* 页脚 */
+footer {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    margin-top: auto; /* 使页脚始终在页面底部 */
+    width: 100%;
+}
+
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <header>
+        <div class="header-top">
+            <div class="logo">二手车交易平台</div>
+            <div class="nav-links">
+                <a href="/">返回首页</a>
+                <a href="/users/login">用户登录</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 管理员注册区域 -->
+    <div class="register-container">
+        <h2>管理员注册</h2>
+        <form method="post" class="register-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-register">注册</button>
+        </form>
+
+        <div class="admin-login">
+            <p>已有账号？<a href="/users/login/">登录</a></p>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>&copy; 2025 二手车交易平台. All rights reserved.</p>
+    </footer>
+</body>
+</html>

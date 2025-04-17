@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Cars</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'users/css/index_style.css' %}">
+    <style>
+        .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    margin: 0 10px;
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.pagination a:hover {
+    background-color: #218838;
+}
+
+.pagination .current {
+    margin: 0 10px;
+    padding: 8px 16px;
+    background-color: #ddd;
+    color: #333;
+    border-radius: 4px;
+}
+
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <header>
+        <div class="header-top">
+            <div class="logo">二手车交易平台</div>
+            <div class="nav-links">
+                <a href="/">返回首页</a>
+                <a href="/users/register">注册</a>
+                <a href="/users/login">登录</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 搜索区域 -->
+    <div class="full-width-container">
+        <div class="search-bar">
+            <h2>搜索车辆</h2>
+            <form method="get">
+                {{ form.as_p }}
+                <button type="submit">搜索</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 搜索结果 -->
+<div class="car-recommendations">
+    <h2>搜索结果</h2>
+    <div class="car-list">
+        {% if page_obj.object_list %}
+            <!-- 显示当前页的车辆 -->
+            {% for car in page_obj.object_list %}
+                <div class="car-item">
+                    <a href="{% url 'car_detail' car.id %}">
+                        <img src="{{ car.PhotoUrl }}" alt="{{ car.Brand }} {{ car.Model }}">
+                    </a>
+                    <h3>{{ car.Brand }} {{ car.Model }}</h3>
+                    <p><strong>年份:</strong> {{ car.Year }}</p>
+                    <p><strong>价格:</strong> {{ car.Price }} 万</p>
+                    <p><strong>颜色:</strong> {{ car.Color }}</p>
+                    <p><strong>里程:</strong> {{ car.Mileage }} 公里</p>
+                    <p><strong>配置:</strong> {{ car.Configuration }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>没有找到符合条件的车辆。</p>
+        {% endif %}
+    </div>
+
+    <!-- 分页控件 -->
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?{{ request.GET.urlencode }}&page=1">&laquo; 第一页</a>
+            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">上一页</a>
+        {% endif %}
+
+        <span class="current">
+            第 {{ page_obj.number }} 页，共 {{ page_obj.paginator.num_pages }} 页
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">下一页</a>
+            <a href="?{{ request.GET.urlencode }}&page={{ page_obj.paginator.num_pages }}">最后一页 &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+
+
+    <!-- 页脚 -->
+    <footer>
+        <p>&copy; 2025 二手车交易平台. All rights reserved.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏 - 二手车交易平台</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 页面基础样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        /* 顶部导航 */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .header-top a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* 返回首页按钮 */
+        .back-home-btn {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .back-home-btn:hover {
+            background-color: #218838;
+        }
+
+        /* 页面导航栏 */
+        .navbar {
+            display: flex;
+            justify-content: center;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            padding: 15px 25px;
+            color: #333;
+            font-size: 18px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* 内容区域 */
+        .favorites-cars {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .car-card {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            cursor: pointer;  /* 鼠标悬停时显示为点击样式 */
+        }
+
+        .car-link {
+            display: block;
+            text-decoration: none;
+            color: inherit; /* 继承文本颜色 */
+        }
+
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .navbar a {
+                padding: 10px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="header-top">
+            <ul class="header-left">
+                <li>欢迎来到二手车交易平台！</li>
+            </ul>
+            <a href="/" class="back-home-btn">返回首页</a>
+        </div>
+    </header>
+
+    <!-- 页面导航栏 -->
+    <div class="navbar">
+        <a href="/users/my_collection">我的收藏</a>
+        <a href="/users/my_released_cars">我的发布</a>
+        <a href="/users/pending_cars">待审核车辆</a>
+        <a href="/users/my_orders">我的订单</a>
+    </div>
+
+    <div class="favorites-cars">
+        <h2>我的收藏</h2>
+
+        <!-- 如果用户有收藏车辆 -->
+        {% if available_cars %}
+            <ul>
+                {% for car in available_cars %}
+                    <li class="car-item">
+                        <div class="car-card">
+                            <!-- 点击整个卡片跳转到车辆详细页面 -->
+                            <a href="{% url 'car_detail' car.id %}" class="car-link">
+                                <div class="car-info">
+                                    <h3>{{ car.Brand }} - {{ car.Year|date:"Y" }}</h3>
+                                    <p><strong>颜色:</strong> {{ car.Color }}</p>
+                                    <p><strong>里程:</strong> {{ car.Mileage }} km</p>
+                                    <p><strong>价格:</strong> ¥{{ car.Price }}</p>
+                                    <p><strong>描述:</strong> {{ car.ConditionDescription }}</p>
+                                </div>
+
+                                <!-- 车辆图片展示 -->
+                                {% if car.PhotoUrl %}
+                                    <div class="car-photo">
+                                        <img src="{{ car.PhotoUrl }}" alt="{{ car.Brand }} Photo" style="max-width: 300px;">
+                                    </div>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+
+        <!-- 如果用户没有收藏车辆 -->
+        {% else %}
+            <p>您没有收藏任何车辆。</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>

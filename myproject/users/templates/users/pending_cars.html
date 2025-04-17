@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待审核车辆 - 二手车交易平台</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 页面基础样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        /* 顶部导航 */
+        header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .header-top a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* 返回首页按钮 */
+        .back-home-btn {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .back-home-btn:hover {
+            background-color: #218838;
+        }
+
+        /* 页面导航栏 */
+        .navbar {
+            display: flex;
+            justify-content: center;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            padding: 15px 25px;
+            color: #333;
+            font-size: 18px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* 待审核车辆内容 */
+        .pending-cars {
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .pending-cars {
+                padding: 15px;
+            }
+        }
+
+        /* 链接样式 */
+        .car-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* 车辆卡片样式 */
+        .car-item {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            border-radius: 5px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .car-item:hover {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .car-info {
+            flex: 1;
+        }
+
+        .car-photo img {
+            max-width: 300px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="header-top">
+            <ul class="header-left">
+                <li>欢迎来到二手车交易平台！</li>
+            </ul>
+            <a href="/" class="back-home-btn">返回首页</a>
+        </div>
+    </header>
+
+    <!-- 页面导航栏 -->
+    <div class="navbar">
+        <a href="/users/my_collection">我的收藏</a>
+        <a href="/users/my_released_cars">我的发布</a>
+        <a href="/users/pending_cars">待审核车辆</a>
+        <a href="/users/my_orders">我的订单</a>
+    </div>
+
+    <div class="pending-cars">
+        <h2>待审核车辆</h2>
+
+        <!-- 如果有待审核车辆 -->
+        {% if checking_cars %}
+            <ul>
+                {% for car in checking_cars %}
+                    <li class="car-item">
+                            <div class="car-info">
+                                <h3>{{ car.Brand }} - {{ car.Year|date:"Y" }}</h3>
+                                <p><strong>颜色:</strong> {{ car.Color }}</p>
+                                <p><strong>里程:</strong> {{ car.Mileage }} km</p>
+                                <p><strong>价格:</strong> ¥{{ car.Price }}</p>
+                                <p><strong>描述:</strong> {{ car.ConditionDescription }}</p>
+                            </div>
+
+                            <!-- 车辆图片展示 -->
+                            {% if car.PhotoUrl %}
+                                <div class="car-photo">
+                                    <img src="{{ car.PhotoUrl }}" alt="{{ car.Brand }} Photo">
+                                </div>
+                            {% endif %}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+
+        <!-- 如果没有待审核车辆 -->
+        {% else %}
+            <p>没有待审核的车辆。</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>

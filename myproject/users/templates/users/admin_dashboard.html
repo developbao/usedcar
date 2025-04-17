@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            cursor: pointer;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+
+        /* 响应式布局 */
+        @media screen and (max-width: 768px) {
+            .container {
+                width: 90%;
+            }
+
+            .car-card {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* 导航栏 */
+        header {
+            background-color: #2c3e50; /* 深灰色 */
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin: 0;
+        }
+
+        header .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        header .nav-links {
+            display: flex;
+            justify-content: flex-end;
+            margin-right: 20px;
+        }
+
+        header .nav-links a {
+            color: white;
+            margin: 0 15px;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        header .nav-links a:hover {
+            color: #f39c12;
+        }
+
+        /* 页面内容样式 */
+        .buttons {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .btn {
+            background-color: #2c3e50; /* 深灰色 */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #34495e; /* 更深的灰色 */
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin: 20px 0;
+            color: #2c3e50; /* 深灰色 */
+        }
+
+        /* 卡片样式 */
+        .car-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column; /* 纵向排列 */
+    justify-content: space-between;
+    min-height: 200px; /* 确保有足够高度 */
+}
+
+
+
+
+
+
+        .car-card .car-info {
+    flex: 1; /* 让车辆信息占据上方的空间 */
+    margin-bottom: 15px; /* 与按钮区分 */
+}
+
+        .car-card .car-info h3 {
+            margin: 10px 0;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .car-card .car-info p {
+            margin: 5px 0;
+        }
+
+        .car-card .actions {
+    display: flex;
+    justify-content: flex-end; /* 让按钮靠右 */
+    gap: 10px; /* 按钮之间的间距 */
+}
+
+        .car-card .actions .btn {
+            margin-bottom: 10px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .car-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .car-card .car-info {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">二手车交易平台 管理中心</div>
+        <div class="nav-links">
+            <a href="/" class="btn">返回首页</a>
+            <a href="{% url 'admin_user_list' %}" class="btn">管理用户</a>
+            <a href="{% url 'admin_dashboard' %}" class="btn">管理车辆</a>
+            <a href="/users/admin_data_analysis" class="btn">分析数据</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>待审核的车辆</h1>
+
+        <div class="car-cards">
+            {% for car in checking_cars %}
+                <div class="car-card">
+                    <a href="{% url 'checking_car_detail' car_id=car.id %}" class="car-link">
+                    <div class="car-info">
+                        <h3>{{ car.Brand }} - {{ car.Color }}</h3>
+                        <p>年份: {{ car.Year }}</p>
+                        <p>价格: {{ car.Price }}</p>
+                        <p>配置: {{ car.Configuration }}</p>
+                        <p>描述: {{ car.ConditionDescription }}</p>
+                    </div>
+                    <div class="actions">
+                        <a href="{% url 'checking_car_detail' car_id=car.id %}" class="btn">查看详情</a>
+                        <a href="{% url 'approve_car' car.id %}" class="btn">通过</a>
+                        <a href="{% url 'reject_car' car.id %}" class="btn">不通过</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

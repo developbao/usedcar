@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Already Logged In</title>
+</head>
+<body>
+    <h2>您已经登录</h2>
+    <p>您已经登录。如果需要注销，请点击下面的按钮。</p>
+    <form method="post" action="/users/logout/">
+        {% csrf_token %}
+        <button type="submit">注销</button>
+    </form>
+    <a href="/">返回首页</a>
+</body>
+</html>

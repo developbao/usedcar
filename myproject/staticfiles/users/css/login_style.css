@@ -1,0 +1,123 @@
+/* 页面基础样式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('/path/to/your/background-image.jpg'); /* 替换为实际的背景图片路径 */
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: flex-start; /* 使登录容器居左 */
+    align-items: center; /* 垂直居中对齐 */
+}
+
+/* 头部 */
+header {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.6); /* 半透明背景 */
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: white;
+}
+
+.header-top .logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.header-top .nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 15px;
+}
+
+.header-top .nav-links a:hover {
+    color: #007bff;
+}
+
+/* 登录容器 */
+.login-container {
+    background-color: #f0f0f0; /* 灰色背景 */
+    padding: 40px;
+    width: 350px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+    z-index: 5; /* 确保它位于背景之上 */
+}
+
+/* 登录标题 */
+.login-container h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* 登录表单 */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.login-form input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.login-form button {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.login-form button:hover {
+    background-color: #218838;
+}
+
+/* 管理员登录链接 */
+.admin-login {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.admin-login a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+.admin-login a:hover {
+    text-decoration: underline;
+}
+
+/* 页脚 */
+footer {
+    background-color: rgba(0, 0, 0, 0.8); /* 半透明背景 */
+    color: white;
+    padding: 20px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+/* 响应式布局：当屏幕宽度小于768px时，调整登录容器的大小 */
+@media (max-width: 768px) {
+    .login-container {
+        width: 280px;
+        padding: 30px;
+    }
+}

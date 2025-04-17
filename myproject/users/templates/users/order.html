@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下单 - {{ car.Brand }} {{ car.Model }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .order-form {
+            margin-top: 20px;
+        }
+        .order-form label {
+            font-size: 16px;
+            color: #333;
+        }
+        .order-form input,
+        .order-form select,
+        .order-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .order-form textarea {
+            height: 120px;
+        }
+        .actions {
+            text-align: center;
+        }
+        .actions button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .actions button:hover {
+            background-color: #0056b3;
+        }
+        .actions button.cancel {
+            background-color: #dc3545;
+        }
+        .actions button.cancel:hover {
+            background-color: #c82333;
+        }
+        .error-message {
+            color: red;
+            font-size: 12px;
+            display: none;
+        }
+        .error-message:not(:empty) {
+            display: block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        .modal-content h3 {
+            margin-bottom: 20px;
+        }
+        .modal-content .input-group {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .modal-content label {
+            display: block;
+            font-weight: bold;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .modal-content button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-confirm {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>购买 {{ car.Brand }} {{ car.Model }} - 下单</h2>
+        <form id="order-form" method="post" class="order-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="buyer_name">买家姓名:</label>
+                <input type="text" id="buyer_name" name="buyer_name" required>
+                <span class="error-message" id="buyer_name_error"></span>
+            </div>
+            <div class="form-group">
+                <label for="phone_number">联系电话:</label>
+                <input type="text" id="phone_number" name="phone_number" required>
+                <span class="error-message" id="phone_number_error"></span>
+            </div>
+            <div class="form-group">
+                <label for="delivery_address">收货地址:</label>
+                <textarea id="delivery_address" name="delivery_address" required></textarea>
+                <span class="error-message" id="delivery_address_error"></span>
+            </div>
+            <div class="form-group">
+                <label for="payment_method">支付方式:</label>
+                <select id="payment_method" name="payment_method" required>
+                    <option value="">请选择支付方式</option>
+                    <option value="信用卡">信用卡</option>
+                    <option value="银行转账">银行转账</option>
+                    <option value="货到付款">货到付款</option>
+                </select>
+                <span class="error-message" id="payment_method_error"></span>
+            </div>
+            <div class="actions">
+                <button type="button" onclick="validateForm()">确认订单</button>
+                <button type="button" class="cancel" onclick="window.location.href='/users/car/{{ car.id }}/'">取消</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 悬浮支付窗口 -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <h3>确认支付</h3>
+            <p>您选择的支付方式: <span id="selected-payment"></span></p>
+            <div id="virtual-payment"></div>
+            <button class="btn-confirm" onclick="confirmPayment()">支付</button>
+            <button class="btn-cancel" onclick="closePaymentModal()">取消</button>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            let isValid = true;
+
+            // 清除之前的错误信息
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+            // 验证买家姓名
+            let buyerName = document.getElementById('buyer_name').value.trim();
+            if (!buyerName) {
+                document.getElementById('buyer_name_error').textContent = '买家姓名不能为空';
+                isValid = false;
+            }
+
+            // 验证联系电话
+            let phoneNumber = document.getElementById('phone_number').value.trim();
+            if (!phoneNumber) {
+                document.getElementById('phone_number_error').textContent = '联系电话不能为空';
+                isValid = false;
+            }
+
+            // 验证收货地址
+            let deliveryAddress = document.getElementById('delivery_address').value.trim();
+            if (!deliveryAddress) {
+                document.getElementById('delivery_address_error').textContent = '收货地址不能为空';
+                isValid = false;
+            }
+
+            // 验证支付方式
+            let paymentMethod = document.getElementById('payment_method').value.trim();
+            if (!paymentMethod) {
+                document.getElementById('payment_method_error').textContent = '请选择支付方式';
+                isValid = false;
+            }
+
+            // 如果所有字段都有效，显示支付窗口
+            if (isValid) {
+                showPaymentModal();
+            }
+        }
+
+        function showPaymentModal() {
+            let paymentMethod = document.getElementById('payment_method').value;
+            document.getElementById('selected-payment').innerText = paymentMethod;
+            let paymentDiv = document.getElementById('virtual-payment');
+            paymentDiv.innerHTML = '';
+
+            if (paymentMethod === '信用卡') {
+                paymentDiv.innerHTML = `
+                    <div class="input-group">
+                        <label for="card-number">卡号:</label>
+                        <input type="text" id="card-number" placeholder="输入信用卡号">
+                        <span class="error-message" id="card-number-error"></span>
+                    </div>
+                    <div class="input-group">
+                        <label for="card-password">密码:</label>
+                        <input type="password" id="card-password" placeholder="输入密码">
+                        <span class="error-message" id="card-password-error"></span>
+                    </div>
+                `;
+            } else if (paymentMethod === '银行转账') {
+                paymentDiv.innerHTML = `
+                    <div class="input-group">
+                        <label for="bank-account">银行账户:</label>
+                        <input type="text" id="bank-account" placeholder="输入银行账户">
+                        <span class="error-message" id="bank-account-error"></span>
+                    </div>
+                    <div class="input-group">
+                        <label for="transfer-ref">转账参考号:</label>
+                        <input type="text" id="transfer-ref" placeholder="输入转账参考号">
+                        <span class="error-message" id="transfer-ref-error"></span>
+                    </div>
+                `;
+            }
+
+            document.getElementById('payment-modal').style.display = 'block';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').style.display = 'none';
+        }
+
+        function confirmPayment() {
+            let paymentMethod = document.getElementById('payment_method').value;
+            let isValid = true;
+
+            // 清除之前的错误信息
+            document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+            if (paymentMethod === '信用卡') {
+                let cardNumber = document.getElementById('card-number').value.trim();
+                let cardPassword = document.getElementById('card-password').value.trim();
+
+                if (!cardNumber) {
+                    document.getElementById('card-number-error').textContent = '卡号不能为空';
+                    isValid = false;
+                }
+                if (!cardPassword) {
+                    document.getElementById('card-password-error').textContent = '密码不能为空';
+                    isValid = false;
+                }
+            } else if (paymentMethod === '银行转账') {
+                let bankAccount = document.getElementById('bank-account').value.trim();
+                let transferRef = document.getElementById('transfer-ref').value.trim();
+
+                if (!bankAccount) {
+                    document.getElementById('bank-account-error').textContent = '银行账户不能为空';
+                    isValid = false;
+                }
+                if (!transferRef) {
+                    document.getElementById('transfer-ref-error').textContent = '转账参考号不能为空';
+                    isValid = false;
+                }
+            }
+
+            // 如果所有字段都有效，提交支付
+            if (isValid) {
+                alert('支付成功！订单已确认。');
+                document.getElementById('order-form').submit();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>用户画像</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 50px 20px;
+            color: #333;
+        }
+
+        .profile-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 750px;
+            margin: auto;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            transition: box-shadow 0.3s;
+        }
+
+        .profile-container:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 26px;
+            color: #1e3a5f;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin: 30px 0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        ul li {
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .info-item {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .info-item span {
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 30px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: #1a252f;
+        }
+
+        /* 响应式 */
+        @media screen and (max-width: 768px) {
+            .profile-container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h1>用户画像：{{ user.name }}</h1>
+
+        {% if profile.message %}
+            <p>{{ profile.message }}</p>
+        {% else %}
+            <div class="section">
+                <div class="section-title">最常购买品牌</div>
+                <ul>
+                    {% for brand, count in profile.preferred_brands %}
+                        <li>{{ brand }}（{{ count }} 次）</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">偏好颜色</div>
+                <ul>
+                    {% for color, count in profile.preferred_colors %}
+                        <li>{{ color }}（{{ count }} 次）</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="section-title">偏好配置</div>
+                <ul>
+                    {% for config, count in profile.preferred_configurations %}
+                        <li>{{ config }}（{{ count }} 次）</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="section">
+                <div class="info-item"><span>平均购车价格：</span>{{ profile.average_price }} 万元</div>
+                <div class="info-item"><span>总购买次数：</span>{{ profile.purchase_count }} 次</div>
+            </div>
+        {% endif %}
+
+        <a href="{% url 'admin_user_list' %}">← 返回用户列表</a>
+    </div>
+</body>
+</html>

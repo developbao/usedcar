@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二手车交易平台</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'users/css/index_style.css' %}">
+    <style>
+        .search-bar {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .search-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #0056b3;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .search-btn:hover {
+            background-color: #007bff;
+        }
+        .search-description {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .popular-brands {
+    background-color: #fff;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.popular-brands h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.popular-brands ul {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.popular-brands li {
+    flex: 1 0 21%;
+    text-align: center;
+    background-color: #0056b3;
+}
+
+.popular-brands li a {
+    text-decoration: none;
+    font-size: 18px;
+    color: #fff;
+    transition: color 0.3s ease;
+}
+
+.popular-brands li a:hover {
+    color: #f0f0f0;
+}
+
+.brand-item {
+    background-color: #007bff;  /* 设置背景颜色为浅灰色 */
+    padding: 10px;
+    border-radius: 8px;  /* 设置圆角 */
+    transition: background-color 0.3s ease;  /* 添加背景色变化效果 */
+}
+
+.brand-item:hover {
+    background-color: #007bff;  /* 鼠标悬停时背景颜色变化 */
+}
+
+
+
+        .message {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+        }
+        .car-recommendations, .popular-brands, .filters {
+            margin: 20px 0;
+        }
+        .car-list, .brand-list, .filter-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .car-item, .brand-item, .filter-item {
+            flex: 1 1 calc(33.333% - 20px);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .car-item:hover, .brand-item:hover, .filter-item:hover {
+            transform: translateY(-5px);
+        }
+        .car-item img, .brand-item img, .filter-item img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        .car-item p, .brand-item p, .filter-item p {
+            margin: 10px 0;
+            font-size: 16px;
+            color: #333;
+        }
+        .car-item a, .brand-item a, .filter-item a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .car-item a:hover, .brand-item a:hover, .filter-item a:hover {
+            text-decoration: underline;
+        }
+        .car-recommendations {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.car-recommendations h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.car-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.car-card {
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 300px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+.car-card:hover {
+    transform: translateY(-10px);
+}
+
+.car-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.car-info {
+    padding: 15px;
+    text-align: center;
+}
+
+.car-info h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.car-info p {
+    font-size: 14px;
+    margin: 5px 0;
+    color: #555;
+}
+
+.btn-view-details {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 15px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+
+.btn-view-details:hover {
+    background-color: #0056b3;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    margin: 0 10px;
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.pagination a:hover {
+    background-color: #218838;
+}
+
+.pagination .current {
+    margin: 0 10px;
+    padding: 8px 16px;
+    background-color: #ddd;
+    color: #333;
+    border-radius: 4px;
+}
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var userId = "{{ user.id }}";
+            if (userId) {
+                $.ajax({
+                    url: '/recommendation/recommendations/' + userId + '/',
+                    method: 'GET',
+                    success: function(data) {
+                        var recommendedCars = data.recommended_cars;
+                        var carList = $('.car-recommendations .car-list');
+                        carList.empty();
+                        recommendedCars.forEach(function(car) {
+                            var carItem = `
+                                <div class="car-item">
+                                    <a href="/users/car/${car.id}">
+                                        <img src="/users/car_photo/${car.id}" alt="${car.Brand} ${car.Model}">
+                                    </a>
+                                    <p>${car.Brand} ${car.Model}</p>
+                                    <p>年份: ${car.Year}</p>
+                                    <p>价格: ¥${car.Price}</p>
+                                    <a href="/car/${car.id}">查看详情</a>
+                                </div>
+                            `;
+                            carList.append(carItem);
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="header-top">
+            <ul class="header-left">
+                <li>欢迎来到二手车交易平台！</li>
+                {% if user %}
+                    <li>Hi {{ user.login_name }}</li>
+                    <li>[ <a href="/users/logout/">登出</a> ]</li>
+                    <li>[ <a href="/users/user_homepage/">个人中心 ]</a></li>
+                {% else %}
+                    <li>[ <a href="/users/login/" target="_blank">登录</a> ]</li>
+                    <li>[ <a href="/users/register/" target="_blank">注册</a> ]</li>
+                {% endif %}
+            </ul>
+            <ul class="header-right">
+                <li><a href="/users/add_checking_car" target="_blank">我要卖车</a> |</li>
+                <li><a href="/app-download" target="_blank">APP下载</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- 成功消息 -->
+    {% if request.GET.message == 'buy_success' %}
+        <div class="message">买车成功！感兴趣的话可以继续逛逛哦。</div>
+    {% endif %}
+
+    <!-- 搜索按钮 -->
+    <div class="search-bar">
+        <a href="{% url 'search_cars' %}" class="search-btn">搜车</a>
+        <div class="search-description">没有想要的车? 点击我搜索更多符合您要求的二手车</div>
+    </div>
+
+    <div class="popular-brands">
+        <h2>热门品牌</h2>
+        <ul class="brand-list">
+            <li class="brand-item"><a href="/users/search/?brand=奥迪">奥迪</a></li>
+            <li class="brand-item"><a href="/users/search/?brand=宝马">宝马</a></li>
+            <li class="brand-item"><a href="/users/search/?brand=奔驰">奔驰</a></li>
+            <li class="brand-item"><a href="/users/search/?brand=丰田">丰田</a></li>
+        </ul>
+    </div>
+    <!-- 个性化推荐 -->
+<div class="car-recommendations">
+    <h3>个性化推荐</h3>
+    <div class="car-list">
+        {% if page_obj.object_list %}
+            <!-- 推荐车辆 -->
+            {% for car in page_obj.object_list %}
+                <div class="car-card">
+                    <a href="{% url 'car_detail' car_id=car.id %}">
+                        <img src="{{ car.PhotoUrl }}" alt="{{ car.Brand }}" class="car-image">
+                    </a>
+                    <div class="car-info">
+                        <h3>{{ car.Brand }} - {{ car.Year|date:"Y" }}</h3>
+                        <p><strong>价格：</strong>{{ car.Price }}元</p>
+                        <p><strong>里程：</strong>{{ car.Mileage }}公里</p>
+                        <p><strong>配置：</strong>{{ car.Configuration }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>目前没有推荐的车辆。</p>
+        {% endif %}
+    </div>
+
+    <!-- 分页控件 -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; 第一页</a>
+                <a href="?page={{ page_obj.previous_page_number }}">上一页</a>
+            {% endif %}
+
+            <span class="current">
+                第 {{ page_obj.number }} 页，共 {{ page_obj.paginator.num_pages }} 页
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">下一页</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">最后一页 &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+
+
+
+
+    <!-- 车辆类别筛选 -->
+    <!-- <div class="filters">
+        <h2>选择您感兴趣的车种</h2>
+        <ul class="filter-list">
+            <li class="filter-item"><a href="/car-type/sedan">轿车</a></li>
+            <li class="filter-item"><a href="/car-type/suv">SUV</a></li>
+            <li class="filter-item"><a href="/car-type/sport">跑车</a></li>
+            <li class="filter-item"><a href="/car-type/van">商务车</a></li>
+            <li class="filter-item"><a href="/car-type/truck">货车</a></li>
+        </ul>
+    </div> -->
+
+    <!-- 热门品牌 -->
+    <!-- <div class="popular-brands">
+        <h2>热门品牌</h2>
+        <ul class="brand-list">
+            <li class="brand-item"><a href="/brand/audi">奥迪</a></li>
+            <li class="brand-item"><a href="/brand/bmw">宝马</a></li>
+            <li class="brand-item"><a href="/brand/mercedes">奔驰</a></li>
+            <li class="brand-item"><a href="/brand/toyota">丰田</a></li>
+            <li class="brand-item"><a href="/brand/ford">福特</a></li>
+        </ul>
+    </div> -->
+
+    <!-- 热门二手车推荐
+    <div class="car-recommendations">
+        <h2>热门二手车推荐</h2>
+        <div class="car-list">
+            <div class="car-item">
+                <img src="{% static 'images/car1.jpg' %}" alt="Car 1">
+                <p>2018年奥迪A6</p>
+                <p>价格: ¥30万</p>
+                <a href="/car/1">查看详情</a>
+            </div>
+            <div class="car-item">
+                <img src="{% static 'images/car2.jpg' %}" alt="Car 2">
+                <p>2017年宝马X5</p>
+                <p>价格: ¥40万</p>
+                <a href="/car/2">查看详情</a>
+            </div>
+            <div class="car-item">
+                <img src="{% static 'images/car3.jpg' %}" alt="Car 3">
+                <p>2016年奔驰C级</p>
+                <p>价格: ¥25万</p>
+                <a href="/car/3">查看详情</a>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- 页脚 -->
+    <footer>
+        <div class="footer-links">
+            <ul>
+                <li><a href="/about">关于我们</a></li>
+                <li><a href="/contact">联系我们</a></li>
+                <li><a href="/terms">服务条款</a></li>
+                <li><a href="/privacy">隐私政策</a></li>
+            </ul>
+        </div>
+    </footer>
+
+</body>
+</html>
