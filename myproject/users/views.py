@@ -1,5 +1,6 @@
 import os
-
+import hashlib
+from django.contrib.auth.hashers import make_password, check_password
 import mongoengine
 import requests
 from django.core.paginator import Paginator
@@ -173,25 +174,29 @@ def index(request):
 
 
 # Create your views here.
-
-
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
+            # 使用 UserCreationForm 中的 save 方法来保存用户数据
             user = form.save()
-            # login(request, user)
+            # 加密密码
+            user.passwd = make_password(user.passwd)
+            user.save()
+
+            # 保存用户 ID 到 session
             request.session['user_id'] = str(user.id)
+
+            # 跳转到首页
             return redirect('/')
     else:
         form = UserCreationForm()
+
     return render(request, 'users/register.html', {'form': form})
 
 
 def login_view(request):
-    user_id = request.session.get('user_id')
-    if user_id:
-        # 用户已经登录，提示用户已登录
+    if request.session.get('user_id'):
         return render(request, 'users/already_logged_in.html')
 
     if request.method == 'POST':
@@ -200,12 +205,14 @@ def login_view(request):
             login_name = form.cleaned_data['login_name']
             passwd = form.cleaned_data['passwd']
             try:
-                user = User.objects.get(login_name=login_name, passwd=passwd)
-                # 手动登录用户
-                request.session['user_id'] = str(user.id)
-                return redirect('/')
+                user = User.objects.get(login_name=login_name)
+                if check_password(passwd, user.passwd):  # 对比哈希密码
+                    request.session['user_id'] = str(user.id)
+                    return redirect('/')
+                else:
+                    form.add_error(None, "密码错误")
             except User.DoesNotExist:
-                form.add_error(None, "Invalid login credentials")
+                form.add_error(None, "用户名不存在")
     else:
         form = UserLoginForm()
     return render(request, 'users/login.html', {'form': form})

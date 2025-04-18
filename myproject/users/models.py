@@ -16,7 +16,7 @@ mongoengine.connect(
 # Create your models here.
 class User(mongoengine.Document):
     login_name = mongoengine.StringField(max_length=50, required=True)
-    passwd = mongoengine.StringField(max_length=50, required=True)
+    passwd = mongoengine.StringField(max_length=128, required=True)
     name = mongoengine.StringField(max_length=50, required=True)
     phone_num = mongoengine.StringField(max_length=50, required=True)
     selling_cars = mongoengine.ListField(mongoengine.ObjectIdField())

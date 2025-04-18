@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -52,7 +54,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'myproject.urls'
 
@@ -92,7 +97,7 @@ DATABASES = {
         'DATABASE': 'all_database',
         'USER_COLLECTION': 'user_collection',
         'CAR_COLLECTION': 'car_collection',
-        'HOST': '120.53.220.118',
+        'HOST': '47.121.190.121',
         'PORT': 27000
     }
 }
