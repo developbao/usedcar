@@ -1,6 +1,10 @@
 # users/api_views.py
+from math import ceil
+
 from django.contrib.auth import authenticate
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework_mongoengine.viewsets import ModelViewSet
 from sklearn.feature_extraction.text import TfidfVectorizer
 from .models import User, UsedCar, CheckingCar, Admin, Order
@@ -71,31 +75,59 @@ class OrderViewSet(ModelViewSet):
 
 # recommend api
 class RecommendCarsAPI(APIView):
-    def get(self, request, user_id):
-        try:
-            user = User.objects.using('all_db').get(id=user_id)
-            liked_cars = user.liked_cars
+    def get(self, request):
+        user_id = request.session.get('user_id')
+        print("Session ID:", request.session.session_key)  # 打印 session key
+        print("User ID:", user_id)
+        recommended_cars = []
+        print("user_id:",user_id)
+        print("Cookies:", request.COOKIES)
 
-            all_cars = UsedCar.objects.using('all_db').all()
+        if user_id:
+            try:
+                user = User.objects.using('all_db').get(id=user_id)
 
-            if not liked_cars:
-                recent_cars = all_cars.order_by('-id')[:50]
-                return Response({
-                    'status': 'success',
-                    'recommendations': [str(car.id) for car in recent_cars]
-                })
+                # 如果用户有搜索或喜欢记录，则使用推荐逻辑
+                if user.searched_cars or user.liked_cars:
+                    # 调用推荐逻辑
+                    response = recommend_cars(request, user.id)
+                    recommended_cars_ids = json.loads(response.content).get('recommendations', [])
 
-            content_based_recs = get_content_based_recommendations(liked_cars, all_cars)
-            collaborative_recs = get_collaborative_recommendations(user_id, liked_cars)
-            final_recommendations = merge_recommendations(content_based_recs, collaborative_recs)
+                    # 根据推荐 ID 获取车辆对象
+                    for car_id in recommended_cars_ids:
+                        try:
+                            car = UsedCar.objects.using('all_db').get(id=car_id)
+                            recommended_cars.append(car)
+                        except UsedCar.DoesNotExist:
+                            continue
+                else:
+                    # 用户无行为记录，展示默认车辆
+                    recommended_cars = list(UsedCar.objects.using('all_db').all()[:20])
 
-            return Response({
-                'status': 'success',
-                'recommendations': final_recommendations
-            })
+            except User.DoesNotExist:
+                recommended_cars = list(UsedCar.objects.using('all_db').all()[:20])
+        else:
+            # 未登录用户，展示默认车辆
+            recommended_cars = list(UsedCar.objects.using('all_db').all()[:20])
 
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        # 将车辆对象序列化为字典返回
+        car_data = [{
+            'id': str(car.id),
+            'owner_id': str(car.owner_id),
+            'brand': car.Brand,
+            'color': car.Color,
+            'year': car.Year.strftime('%Y-%m-%d') if car.Year else None,
+            'mileage': float(car.Mileage) if car.Mileage else None,
+            'price': float(car.Price) if car.Price else None,
+            'configuration': car.Configuration,
+            'condition_description': car.ConditionDescription,
+            'photo_url': car.PhotoUrl
+        } for car in recommended_cars]
+
+        return Response({
+            'status': 'success',
+            'data': car_data
+        }, status=status.HTTP_200_OK)
 
 def recommend_cars(request, user_id):
     try:
@@ -198,6 +230,7 @@ def merge_recommendations(content_recs, collaborative_recs):
 
 class RegisterAPIView(APIView):
     def post(self, request):
+        print(request.data)
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -208,6 +241,8 @@ class RegisterAPIView(APIView):
 
 class LoginAPIView(APIView):
     def post(self, request):
+        print(request.data)
+        print("session set:", request.session.get('user_id'))
         login_name = request.data.get('login_name')
         passwd = request.data.get('passwd')
 
@@ -218,7 +253,17 @@ class LoginAPIView(APIView):
             user = User.objects.get(login_name=login_name)
             if check_password(passwd, user.passwd):
                 request.session['user_id'] = str(user.id)
-                return Response({'message': '登录成功'}, status=status.HTTP_200_OK)
+                print("session set:", request.session.get('user_id'))
+                print("Session keys after login:", request.session.keys())  # 查看 session 中所有的键
+
+                print(user.id)
+                return Response({
+                    'message': '登录成功',
+                    'user': {
+                        'id': str(user.id),
+                        'login_name': user.login_name,
+                    }
+                }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': '密码错误'}, status=status.HTTP_401_UNAUTHORIZED)
         except User.DoesNotExist:
@@ -298,18 +343,42 @@ class SearchCarsAPIView(APIView):
                 user.save()
             except User.DoesNotExist:
                 pass
+        print("筛选后数量：", cars.count())
+        # print(cars)
 
-        # 分页
-        paginator = Paginator(cars, 20)
-        page_number = request.GET.get('page', 1)
-        page_obj = paginator.get_page(page_number)
-        serialized_data = UsedCarSerializer(page_obj.object_list, many=True).data
+        page_size = 20
+        page_number = int(request.GET.get('page', 1))
+        start = (page_number - 1) * page_size
+        end = start + page_size
+
+        total_items = cars.count()
+        total_pages = ceil(total_items / page_size)
+
+        print(total_pages)
+        page_cars = cars[start:end]  # MongoEngine 支持切片
+
+        # serialized_data = UsedCarSerializer(page_cars, many=True).data
+        # 为了前端的统一暂时不同序列化器
+
+        # 直接使用以下方法进行序列化
+        car_data = [{
+            'id': str(car.id),
+            'owner_id': str(car.owner_id),
+            'brand': car.Brand,
+            'color': car.Color,
+            'year': car.Year.strftime('%Y-%m-%d') if car.Year else None,
+            'mileage': float(car.Mileage) if car.Mileage else None,
+            'price': float(car.Price) if car.Price else None,
+            'configuration': car.Configuration,
+            'condition_description': car.ConditionDescription,
+            'photo_url': car.PhotoUrl
+        } for car in page_cars]
 
         return Response({
-            'results': serialized_data,
-            'page': page_obj.number,
-            'total_pages': paginator.num_pages,
-            'total_items': paginator.count,
+            'results': car_data,
+            'page': page_number,
+            'total_pages': total_pages,
+            'total_items': total_items,
         }, status=status.HTTP_200_OK)
 
 
@@ -317,20 +386,37 @@ class CarPhotoAPIView(APIView):
     def get(self, request, car_id):
         try:
             car = UsedCar.objects.using('all_db').get(id=car_id)
+
             if car.PhotoUrl:
-                photo_path = os.path.join(settings.MEDIA_ROOT, car.PhotoUrl)
-                with open(photo_path, 'rb') as photo_file:
-                    return HttpResponse(photo_file.read(), content_type='image/jpg')
+                # 去掉前导斜杠，避免 os.path.join 出现问题
+                relative_path = car.PhotoUrl.lstrip('/')
+                photo_path = os.path.join(settings.MEDIA_ROOT, relative_path)
+
+                if os.path.exists(photo_path):
+                    with open(photo_path, 'rb') as photo_file:
+                        return HttpResponse(photo_file.read(), content_type='image/jpeg')
+                else:
+                    return Response(
+                        {"error": f"图片路径不存在: {photo_path}"},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
             else:
-                return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "该车辆没有上传图片"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
         except UsedCar.DoesNotExist:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "找不到该车辆"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class CarDetailAPIView(APIView):
     def get(self, request, car_id):
         try:
-            car = UsedCar.objects.using('all_db').get(id=car_id)
+            car = UsedCar.objects.using('all_db').get(id=ObjectId(car_id))
             serialized_car = UsedCarSerializer(car).data
             user_id = request.session.get('user_id')
             is_liked = False
@@ -338,6 +424,8 @@ class CarDetailAPIView(APIView):
                 user = User.objects.using('all_db').get(id=user_id)
                 if car.id in user.liked_cars:
                     is_liked = True
+
+            print(car, is_liked,user_id)
             return Response({
                 'car': serialized_car,
                 'is_liked': is_liked
@@ -374,7 +462,7 @@ class CarDetailAPIView(APIView):
         except UsedCar.DoesNotExist:
             return Response({'detail': 'Car not found'}, status=status.HTTP_404_NOT_FOUND)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class CreateOrderAPIView(APIView):
     def post(self, request, car_id):
         # 获取车辆信息
@@ -431,37 +519,37 @@ class CreateOrderAPIView(APIView):
         return Response({'detail': 'Order created successfully'}, status=status.HTTP_201_CREATED)
 
 
+from .forms import AddCheckingCarForm
+from .models import CheckingCar, User
+
 class AddCheckingCarAPIView(APIView):
     def post(self, request):
-        # 判断用户是否登录
         user_id = request.session.get('user_id')
         if not user_id:
             return Response({'detail': 'User not logged in'}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # Django 表单接收 data + files
+        form = AddCheckingCarForm(request.POST, request.FILES)
+        if not form.is_valid():
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # 表单验证通过，执行保存逻辑
+        checking_car = form.save()
+        # 关联 owner
         user = User.objects.using('all_db').get(id=user_id)
+        checking_car.owner_id = user.id
+        checking_car.save()
 
-        # 获取请求数据
-        form_data = request.data
-        form_files = request.FILES
+        # 把新车 ID 加入用户的 checking_cars
+        user.checking_cars.append(checking_car.id)
+        user.save()
 
-        # 序列化检查车数据
-        serializer = CheckingCarSerializer(data=form_data, files=form_files)
-        if serializer.is_valid():
-            checking_car = serializer.save()
-            checking_car.owner_id = user.id
-            checking_car.save()
-
-            # 将车辆ID添加到用户的 checking_cars 列表中
-            user.checking_cars.append(checking_car.id)
-            user.save()
-
-            return Response({'detail': 'Checking car added successfully'}, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'Checking car added successfully'}, status=status.HTTP_201_CREATED)
 
 
 class AdminCreationAPIView(APIView):
     def post(self, request):
+        print(request.data)
         serializer = AdminCreationSerializer(data=request.data)
         if serializer.is_valid():
             admin = serializer.save()
@@ -471,20 +559,45 @@ class AdminCreationAPIView(APIView):
 
 class AdminLoginAPIView(APIView):
     def post(self, request):
-        serializer = AdminLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            login_name = serializer.validated_data['login_name']
-            passwd = serializer.validated_data['passwd']
+        print(request.data)
+        print(request.session)
+        login_name = request.data.get('login_name')
+        passwd = request.data.get('passwd')
 
-            admin = authenticate(request, username=login_name, password=passwd)
+        if not login_name or not passwd:
+            return Response({'error': '用户名和密码不能为空'}, status=status.HTTP_400_BAD_REQUEST)
 
-            if admin is not None:
-                # 登录成功，返回会话或认证令牌
-                request.session['admin_id'] = str(admin.id)  # 将管理员ID存入session
-                return Response({'message': 'Login successful', 'admin_id': str(admin.id)}, status=status.HTTP_200_OK)
-            return Response({'message': 'Invalid login credentials or not an admin.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            admin = Admin.objects.get(login_name=login_name)
+            print(admin.login_name, " ", admin.passwd)
+            if check_admin_password(passwd, admin.passwd):
+                request.session['admin_id'] = str(admin.id)
+                print("session set:", request.session.get('admin_id'))
+                print("session keys:", request.session.keys())
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                print(login_name)
+                return Response({
+                    'message': 'login successfully',
+                    'admin_id': str(admin.id),
+                    'login_name': admin.login_name,
+                }, status=status.HTTP_200_OK)
+
+            else:
+                return Response({'error': '密码错误'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        except Admin.DoesNotExist:
+            return Response({'error': '用户不存在'}, status=status.HTTP_404_NOT_FOUND)
+
+
+def check_admin_password(input_passwd, stored_passwd):
+    """
+    比较输入的密码与存储的密码是否相同。
+
+    :param input_passwd: 用户输入的密码
+    :param stored_passwd: 存储在数据库中的密码
+    :return: 如果密码匹配返回 True，否则返回 False
+    """
+    return input_passwd == stored_passwd
 
 
 class AdminDashboardAPIView(APIView):
@@ -503,7 +616,7 @@ class AdminDashboardAPIView(APIView):
         # 获取所有待审核的车辆
         checking_cars = CheckingCar.objects.using('all_db').all()
         serializer = CheckingCarSerializer(checking_cars, many=True)
-
+        print(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -521,6 +634,7 @@ class CheckingCarDetailAPIView(APIView):
 class ApproveCarAPIView(APIView):
     def post(self, request, car_id):
         admin_id = request.session.get('admin_id')
+        print(admin_id)
         if not admin_id:
             return Response({'detail': 'Admin not logged in'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -549,6 +663,7 @@ class ApproveCarAPIView(APIView):
 class RejectCarAPIView(APIView):
     def delete(self, request, car_id):
         admin_id = request.session.get('admin_id')
+        print(admin_id)
         if not admin_id:
             return Response({'detail': 'Admin not logged in'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -570,6 +685,7 @@ class AdminUserListAPIView(APIView):
 
         users = User.objects.using('all_db').all()
         serializer = UserSerializer(users, many=True)
+        print(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -599,11 +715,13 @@ class UserProfileAPIView(APIView):
         return Response({
             "user": {
                 "id": str(user.id),
-                "username": user.username,
-                "email": user.email,
+                "login_name": user.login_name,  # 使用 login_name 替代 username
+                "name": user.name,  # 使用 name
+                "phone_num": user.phone_num,  # 使用 phone_num
             },
             "profile": profile
         }, status=status.HTTP_200_OK)
+
 
 
 class DeleteUserAPIView(APIView):
@@ -706,6 +824,11 @@ class AdminDataAnalysisAPIView(APIView):
                 except:
                     continue
 
+        print("purchased_car_counts", purchased_car_counts)
+        print("searched_car_counts", searched_car_counts)
+        print("liked_car_counts",liked_car_counts)
+        print("age_ranges",age_ranges)
+
         return Response({
             'purchased_car_counts': purchased_car_counts,
             'searched_car_counts': searched_car_counts,
@@ -739,9 +862,21 @@ class MyCollectionAPIView(APIView):
         if removed_ids:
             user.save()
 
-        serialized = UsedCarSerializer(available_cars, many=True)
+        # serialized = UsedCarSerializer(available_cars, many=True)
+        car_data = [{
+            'id': str(car.id),
+            'owner_id': str(car.owner_id),
+            'brand': car.Brand,
+            'color': car.Color,
+            'year': car.Year.strftime('%Y-%m-%d') if car.Year else None,
+            'mileage': float(car.Mileage) if car.Mileage else None,
+            'price': float(car.Price) if car.Price else None,
+            'configuration': car.Configuration,
+            'condition_description': car.ConditionDescription,
+            'photo_url': car.PhotoUrl
+        } for car in available_cars]
         return Response({
-            'available_cars': serialized.data,
+            'available_cars': car_data,
             'removed_ids': removed_ids  # 可选返回：哪些已被删除
         }, status=status.HTTP_200_OK)
 
@@ -753,8 +888,20 @@ class MyReleasedCarsAPIView(APIView):
             return Response({'detail': '请先登录'}, status=status.HTTP_401_UNAUTHORIZED)
 
         cars = UsedCar.objects.filter(owner_id=user_id)
-        serializer = UsedCarSerializer(cars, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # serializer = UsedCarSerializer(cars, many=True)
+        car_data = [{
+            'id': str(car.id),
+            'owner_id': str(car.owner_id),
+            'brand': car.Brand,
+            'color': car.Color,
+            'year': car.Year.strftime('%Y-%m-%d') if car.Year else None,
+            'mileage': float(car.Mileage) if car.Mileage else None,
+            'price': float(car.Price) if car.Price else None,
+            'configuration': car.Configuration,
+            'condition_description': car.ConditionDescription,
+            'photo_url': car.PhotoUrl
+        } for car in cars]
+        return Response(car_data, status=status.HTTP_200_OK)
 
     def delete(self, request):
         user_id = request.session.get('user_id')
@@ -781,9 +928,23 @@ class PendingCarsAPIView(APIView):
         if not user_id:
             return Response({'detail': '请先登录'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        checking_cars = CheckingCar.objects(owner_id=user_id)
+        # 使用 filter 进行查询
+        checking_cars = CheckingCar.objects.filter(owner_id=user_id)
 
-        serializer = CheckingCarSerializer(checking_cars, many=True)
+        # serializer = CheckingCarSerializer(checking_cars, many=True)
+
+        car_data = [{
+            'id': str(car.id),
+            'owner_id': str(car.owner_id),
+            'brand': car.Brand,
+            'color': car.Color,
+            'year': car.Year.strftime('%Y-%m-%d') if car.Year else None,
+            'mileage': float(car.Mileage) if car.Mileage else None,
+            'price': float(car.Price) if car.Price else None,
+            'configuration': car.Configuration,
+            'condition_description': car.ConditionDescription,
+            'photo_url': car.PhotoUrl
+        } for car in checking_cars]
 
         if not checking_cars:
             return Response({
@@ -792,8 +953,9 @@ class PendingCarsAPIView(APIView):
             }, status=status.HTTP_200_OK)
 
         return Response({
-            'checking_cars': serializer.data
+            'checking_cars': car_data
         }, status=status.HTTP_200_OK)
+
 
 
 class MyOrdersAPIView(APIView):

@@ -56,7 +56,6 @@ class AdminCreationSerializer(serializers.DocumentSerializer):
         return value
 
     def create(self, validated_data):
-        validated_data['passwd'] = make_password(validated_data['passwd'])  # 密码加密存储
         admin = Admin.objects.create(**validated_data)
         return admin
 

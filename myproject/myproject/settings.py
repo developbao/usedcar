@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -54,10 +55,40 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+# 支持跨域 session cookie 设置
+SESSION_COOKIE_SAMESITE = 'None'  # 允许跨域发送
+SESSION_COOKIE_SECURE = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
+# 使用内存缓存
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # 使用内存缓存
+        'LOCATION': 'unique-snowflake',  # 可以自定义缓存位置标识
+    }
+}
+
+# CORS 设置
+MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
+
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',  # Vue 项目地址
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",  # Vue 前端开发服务器的地址
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+
 
 ROOT_URLCONF = 'myproject.urls'
 

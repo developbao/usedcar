@@ -67,15 +67,15 @@ urlpatterns = [
 
     # 新增 API 路由
     path('', include(router.urls)),
-    path('api/recommend/<str:user_id>/', RecommendCarsAPI.as_view(), name='recommend-cars'),
+    path('api/recommend-cars/', RecommendCarsAPI.as_view(), name='recommend_cars'),
     path('api/register/', RegisterAPIView.as_view()),
     path('api/login/', LoginAPIView.as_view()),
     path('api/logout/', LogoutAPIView.as_view()),
     path('api/me/', MeAPIView.as_view()),
     path('api/search-cars/', SearchCarsAPIView.as_view()),
     path('api/car/photo/<int:car_id>/', CarPhotoAPIView.as_view(), name='car_photo'),
-    path('api/car/detail/<int:car_id>/', CarDetailAPIView.as_view(), name='car_detail'),
-    path('api/create_order/<int:car_id>/', CreateOrderAPIView.as_view(), name='create_order'),
+    path('api/car/detail/<str:car_id>/', CarDetailAPIView.as_view(), name='car_detail'),
+    path('api/create_order/<str:car_id>/', CreateOrderAPIView.as_view(), name='create_order'),
     path('api/add_checking_car/', AddCheckingCarAPIView.as_view(), name='add_checking_car'),
     path('api/admin/login/', AdminLoginAPIView.as_view(), name='admin_login'),
     path('api/admin/register/', AdminCreationAPIView.as_view(), name='admin_register'),
